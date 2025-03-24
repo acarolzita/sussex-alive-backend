@@ -1,0 +1,32 @@
+// Specify your data source (PostgreSQL in this case)
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+// Specify that you want to generate the Prisma Client
+generator client {
+  provider = "prisma-client-js"
+}
+
+// Define your models
+model User {
+  id       String  @id @default(uuid())
+  email    String  @unique
+  name     String
+  password String
+  posts    Post[]
+}
+
+model Post {
+  id        String   @id @default(uuid())
+  content   String
+  createdAt DateTime @default(now())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+}
+
+
+
+
+
