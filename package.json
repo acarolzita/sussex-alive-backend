@@ -1,15 +1,26 @@
 {
-  "name": "backend",
+  "name": "sussex-alive-backend",
   "version": "1.0.0",
-  "description": "",
+  "description": "Backend for Sussex Alive, a Facebook-like social network exclusively for Sussex University students.",
   "main": "index.js",
   "scripts": {
     "start": "node index.js",
     "dev": "nodemon index.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "prisma:migrate": "prisma migrate dev"
   },
-  "keywords": [],
-  "author": "",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/acarolzita/sussex-alive-backend.git"
+  },
+  "keywords": [
+    "sussex",
+    "social-network",
+    "backend",
+    "express",
+    "prisma"
+  ],
+  "author": "Your Name or Team",
   "license": "ISC",
   "type": "commonjs",
   "dependencies": {
@@ -18,10 +29,10 @@
     "dotenv": "^16.4.7",
     "express": "^4.21.2",
     "pg": "^8.14.1",
-    "prisma": "^6.5.0",
     "socket.io": "^4.8.1"
   },
   "devDependencies": {
-    "nodemon": "^3.1.9"
+    "nodemon": "^3.1.9",
+    "prisma": "^6.5.0"
   }
 }
