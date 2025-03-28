@@ -1,21 +1,20 @@
-// Specify your data source (PostgreSQL in this case)
 datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-// Specify that you want to generate the Prisma Client
 generator client {
   provider = "prisma-client-js"
 }
 
-// Define your models
 model User {
-  id       String  @id @default(uuid())
-  email    String  @unique
+  id       String    @id @default(uuid())
+  email    String    @unique
   name     String
   password String
   posts    Post[]
+  sentMessages    Message[] @relation("SenderMessages")
+  receivedMessages Message[] @relation("ReceiverMessages")
 }
 
 model Post {
@@ -25,6 +24,17 @@ model Post {
   userId    String
   user      User     @relation(fields: [userId], references: [id])
 }
+
+model Message {
+  id         String   @id @default(uuid())
+  text       String
+  createdAt  DateTime @default(now())
+  senderId   String
+  receiverId String
+  sender     User     @relation("SenderMessages", fields: [senderId], references: [id])
+  receiver   User     @relation("ReceiverMessages", fields: [receiverId], references: [id])
+}
+
 
 
 
