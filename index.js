@@ -5,7 +5,9 @@ const cors = require("cors");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 
-// Import your routes from the routes folder
+// Import route files from the routes folder
+const authRouter = require("./routes/auth");
+const profileRouter = require("./routes/profile");
 const postsRouter = require("./routes/posts");
 const messagesRouter = require("./routes/messages");
 
@@ -19,19 +21,20 @@ app.use(cors());
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*", // Replace "*" with your frontend URL in production for added security
+    origin: "*", // In production, replace "*" with your frontend URL for added security.
     methods: ["GET", "POST"],
   },
 });
 
-// Socket.io connection handling (optional, adjust based on your needs)
+// Socket.io connection handling (adjust as needed)
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
-  // You can listen for socket events and handle them here if needed.
-  socket.on("message", (data) => {
-    console.log("Socket message received:", data);
-    // Optionally, you could broadcast or process the message
+  // Example: Listen for a "sendMessage" event to broadcast messages
+  socket.on("sendMessage", async (data) => {
+    console.log("Received message via Socket.io:", data);
+    // Here, you might want to process and save the message in your DB.
+    // Then broadcast it to all connected clients.
     io.emit("message", data);
   });
 
@@ -40,20 +43,23 @@ io.on("connection", (socket) => {
   });
 });
 
-// Use your route files for API endpoints
+// Register API routes
+app.use("/api/auth", authRouter);
+app.use("/api/profile", profileRouter);
 app.use("/api/posts", postsRouter);
 app.use("/api/messages", messagesRouter);
 
-// Root route (for testing)
-app.get("/api/messages", async (req, res) => {
+// Root test route
+app.get("/", (req, res) => {
   res.send("Backend server is running!");
 });
 
-// Start the server on the port provided by the environment or fallback to 5001
+// Start the server on the designated port
 const PORT = process.env.PORT || 5001;
 server.listen(PORT, () => {
   console.log(`Backend server running on port ${PORT}`);
 });
+
 
 
 

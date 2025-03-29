@@ -12,6 +12,8 @@ model User {
   email    String    @unique
   name     String
   password String
+  bio      String?
+  profilePic String?    
   posts    Post[]
   sentMessages    Message[] @relation("SenderMessages")
   receivedMessages Message[] @relation("ReceiverMessages")
