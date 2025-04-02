@@ -1,4 +1,4 @@
-// backend/index.js
+// backend/index.js 
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
@@ -15,13 +15,16 @@ const app = express();
 
 // Middleware
 app.use(express.json());
-app.use(cors());
+// Restrict CORS to your Vercel frontend domain
+app.use(cors({
+  origin: "https://sussex-alive.vercel.app"
+}));
 
 // Create HTTP server and attach Socket.io
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "*", // In production, replace "*" with your frontend URL for added security.
+    origin: "https://sussex-alive.vercel.app", // Allow only your frontend URL
     methods: ["GET", "POST"],
   },
 });
@@ -33,8 +36,7 @@ io.on("connection", (socket) => {
   // Example: Listen for a "sendMessage" event to broadcast messages
   socket.on("sendMessage", async (data) => {
     console.log("Received message via Socket.io:", data);
-    // Here, you might want to process and save the message in your DB.
-    // Then broadcast it to all connected clients.
+    // Process or save the message as needed, then broadcast it.
     io.emit("message", data);
   });
 
@@ -59,6 +61,7 @@ const PORT = process.env.PORT || 5001;
 server.listen(PORT, () => {
   console.log(`Backend server running on port ${PORT}`);
 });
+
 
 
 
