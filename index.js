@@ -1,7 +1,8 @@
-// backend/index.js 
+// backend/index.js
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
+const helmet = require("helmet");  // Import helmet
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 
@@ -15,31 +16,29 @@ const app = express();
 
 // Middleware
 app.use(express.json());
-// Restrict CORS to your Vercel frontend domain
 app.use(cors({
   origin: "https://sussex-alive.vercel.app"
 }));
+
+// Use helmet to set security headers (including X-Content-Type-Options)
+app.use(helmet());
 
 // Create HTTP server and attach Socket.io
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "https://sussex-alive.vercel.app", // Allow only your frontend URL
+    origin: "https://sussex-alive.vercel.app",
     methods: ["GET", "POST"],
   },
 });
 
-// Socket.io connection handling (adjust as needed)
+// Socket.io connection handling
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
-
-  // Example: Listen for a "sendMessage" event to broadcast messages
   socket.on("sendMessage", async (data) => {
     console.log("Received message via Socket.io:", data);
-    // Process or save the message as needed, then broadcast it.
     io.emit("message", data);
   });
-
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });
@@ -61,6 +60,7 @@ const PORT = process.env.PORT || 5001;
 server.listen(PORT, () => {
   console.log(`Backend server running on port ${PORT}`);
 });
+
 
 
 
