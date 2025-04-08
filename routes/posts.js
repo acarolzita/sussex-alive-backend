@@ -1,17 +1,24 @@
+// routes/posts.js
 const express = require("express");
 const router = express.Router();
-const { PrismaClient } = require("@prisma/client");
-
-const prisma = new PrismaClient();
 
 // GET /api/posts
-router.get("/", async (req, res) => {
-  // ...
+router.get("/", (req, res) => {
+  // For now, return a simple static array of posts or an empty array
+  const posts = [
+    {
+      id: 1,
+      title: "Test Post",
+      content: "Hello world!",
+      author: "Admin",
+      createdAt: new Date().toISOString()
+    }
+  ];
+
+  res.json(posts);
 });
 
-// POST /api/posts
-router.post("/", async (req, res) => {
-  // ...
-});
+// Optionally, define more routes for creating, editing, or deleting posts...
 
 module.exports = router;
+
