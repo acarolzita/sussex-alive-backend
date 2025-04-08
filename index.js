@@ -1,4 +1,3 @@
-// backend/index.js
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
@@ -14,30 +13,18 @@ const messagesRouter = require("./routes/messages");
 
 const app = express();
 
-// Set up Helmet to secure HTTP headers
+// Middleware
+app.use(express.json());
+app.use(cors({
+  origin: "https://sussex-alive.vercel.app"  // Updated CORS setting
+}));
 app.use(helmet());
 
-// Configure CORS: Replace the origin with your deployed frontend URL
-app.use(cors({
-  origin: "https://sussex-alive-pi1h-773o4jrbq-acarolzitas-projects.vercel.app",
-  methods: ["GET", "POST", "PUT", "DELETE"],
-  credentials: true,
-}));
-
-// Set up middleware to explicitly set Cache-Control header
-app.use((req, res, next) => {
-  res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
-  next();
-});
-
-// Middleware to parse JSON bodies
-app.use(express.json());
-
-// Create HTTP server and attach Socket.io
+// Create HTTP server and attach Socket.io with updated CORS config
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
-    origin: "https://sussex-alive-pi1h-773o4jrbq-acarolzitas-projects.vercel.app",
+    origin: "https://sussex-alive.vercel.app",
     methods: ["GET", "POST"],
   },
 });
@@ -45,13 +32,10 @@ const io = new Server(server, {
 // Socket.io connection handling
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
-
   socket.on("sendMessage", async (data) => {
     console.log("Received message via Socket.io:", data);
-    // You can process and save the message in your DB here
     io.emit("message", data);
   });
-
   socket.on("disconnect", () => {
     console.log("User disconnected:", socket.id);
   });
@@ -68,11 +52,12 @@ app.get("/", (req, res) => {
   res.send("Backend server is running!");
 });
 
-// Start the server on the designated port
+// Start the server
 const PORT = process.env.PORT || 5001;
 server.listen(PORT, () => {
   console.log(`Backend server running on port ${PORT}`);
 });
+
 
 
 
