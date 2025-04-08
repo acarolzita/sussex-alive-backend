@@ -1,24 +1,22 @@
 // routes/posts.js
-const express = require("express");
+const express = require('express');
 const router = express.Router();
 
-// GET /api/posts
-router.get("/", (req, res) => {
-  // For now, return a simple static array of posts or an empty array
+// Example: Return a hard-coded array of posts for testing
+router.get('/', (req, res) => {
+  // You can replace this with a database query once basic functionality works
   const posts = [
     {
       id: 1,
-      title: "Test Post",
-      content: "Hello world!",
-      author: "Admin",
-      createdAt: new Date().toISOString()
+      title: 'Test Post',
+      content: 'This is a sample post content.',
+      author: 'John Doe',
+      createdAt: new Date().toISOString(),
     }
   ];
-
   res.json(posts);
 });
 
-// Optionally, define more routes for creating, editing, or deleting posts...
-
 module.exports = router;
+
 
