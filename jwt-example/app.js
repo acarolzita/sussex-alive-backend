@@ -61,7 +61,17 @@ app.get('/protected', authenticateToken, (req, res) => {
   res.json({ message: 'This is protected data.', user: req.user });
 });
 
-// Start the server
-app.listen(PORT, () => {
+// Start the server and set up graceful shutdown handling
+const server = app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`);
 });
+
+// Graceful shutdown: when you press Ctrl+C, the server will close cleanly.
+process.on('SIGINT', () => {
+  console.log('SIGINT signal received: closing HTTP server');
+  server.close(() => {
+    console.log('Server closed gracefully');
+    process.exit(0);
+  });
+});
+
