@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 const authenticateToken = require('../middlewares/authMiddleware');
 
 // GET /api/posts: Fetch all posts
-router.get('/', async (req, res) => {
+router.get('/', authenticateToken, async (req, res) => {
   try {
     // Optionally include associated user data (only essential fields)
     const posts = await prisma.post.findMany({
