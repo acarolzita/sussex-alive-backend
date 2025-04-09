@@ -1,4 +1,4 @@
-// backend/routes/posts.js
+// routes/posts.js
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
@@ -6,7 +6,7 @@ const prisma = new PrismaClient();
 const authenticateToken = require('../middlewares/authMiddleware');
 
 // GET /api/posts: Fetch all posts
-router.get('/', authenticateToken, async (req, res) => {
+router.get('/', async (req, res) => {
   try {
     // Optionally include associated user data (only essential fields)
     const posts = await prisma.post.findMany({
@@ -52,6 +52,7 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 module.exports = router;
+
 
 
 
