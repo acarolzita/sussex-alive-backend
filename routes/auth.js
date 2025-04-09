@@ -20,13 +20,13 @@ const JWT_SECRET = process.env.JWT_SECRET || "default_secret"; // Ensure you set
 // Registration Endpoint
 // *******************
 // POST /api/auth/register
-// Expects JSON body: { email, name, password }
+// Expects JSON body: { email, name, password, studentId }
 router.post("/register", async (req, res) => {
-  const { email, name, password } = req.body;
+  const { email, name, password, studentId } = req.body;
 
-  // Basic validation: ensure email, name, and password are provided
-  if (!email || !name || !password) {
-    return res.status(400).json({ error: "Missing email, name, or password." });
+  // Basic validation: ensure email, name, password, and studentId are provided
+  if (!email || !name || !password || !studentId) {
+    return res.status(400).json({ error: "Missing email, name, password, or studentId." });
   }
 
   try {
@@ -47,13 +47,14 @@ router.post("/register", async (req, res) => {
         email,
         name,
         password: hashedPassword,
+        studentId,
       },
     });
 
     // Optionally, you may not want to return sensitive info
     return res.status(201).json({
       message: "User registered successfully.",
-      user: { id: newUser.id, email: newUser.email, name: newUser.name },
+      user: { id: newUser.id, email: newUser.email, name: newUser.name, studentId: newUser.studentId },
     });
   } catch (error) {
     console.error("Error in registration:", error);
@@ -99,7 +100,7 @@ router.post("/login", async (req, res) => {
     return res.json({
       message: "Login successful.",
       token,
-      user: { id: user.id, email: user.email, name: user.name },
+      user: { id: user.id, email: user.email, name: user.name, studentId: user.studentId },
     });
   } catch (error) {
     console.error("Error in login:", error);
@@ -108,5 +109,7 @@ router.post("/login", async (req, res) => {
 });
 
 module.exports = router;
+
+
 
 
