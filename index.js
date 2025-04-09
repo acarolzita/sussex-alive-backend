@@ -1,3 +1,4 @@
+// index.js
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
@@ -5,7 +6,7 @@ const helmet = require("helmet");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 
-// Import route files
+// Import route files (make sure these exist in a 'routes' folder)
 const authRouter = require("./routes/auth");
 const profileRouter = require("./routes/profile");
 const postsRouter = require("./routes/posts");
@@ -16,7 +17,7 @@ const app = express();
 // Middleware
 app.use(express.json());
 app.use(cors({
-  origin: "https://sussex-alive.vercel.app"  // Updated CORS setting
+  origin: "https://sussex-alive.vercel.app", // Adjust if needed
 }));
 app.use(helmet());
 
@@ -32,7 +33,7 @@ const io = new Server(server, {
 // Socket.io connection handling
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
-  socket.on("sendMessage", async (data) => {
+  socket.on("sendMessage", (data) => {
     console.log("Received message via Socket.io:", data);
     io.emit("message", data);
   });
@@ -57,6 +58,16 @@ const PORT = process.env.PORT || 5001;
 server.listen(PORT, () => {
   console.log(`Backend server running on port ${PORT}`);
 });
+
+// Optional: Graceful shutdown on SIGINT (Ctrl+C)
+process.on("SIGINT", () => {
+  console.log("SIGINT signal received: closing HTTP server");
+  server.close(() => {
+    console.log("Server closed gracefully");
+    process.exit(0);
+  });
+});
+
 
 
 
