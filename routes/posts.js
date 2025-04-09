@@ -1,17 +1,19 @@
-// routes/posts.js
+// backend/routes/posts.js
 const express = require('express');
 const router = express.Router();
 const { PrismaClient } = require('@prisma/client');
 const prisma = new PrismaClient();
 const authenticateToken = require('../middlewares/authMiddleware');
 
-// GET /api/posts: Fetch all posts from the database
+// GET /api/posts: Fetch all posts
 router.get('/', async (req, res) => {
   try {
-    // Fetch posts along with the associated user (if needed)
+    // Optionally include associated user data (only essential fields)
     const posts = await prisma.post.findMany({
       include: {
-        user: true, // Optional: include associated user data
+        user: {
+          select: { id: true, name: true, email: true },
+        },
       },
     });
     res.json(posts);
@@ -25,22 +27,21 @@ router.get('/', async (req, res) => {
 router.post('/', authenticateToken, async (req, res) => {
   const { title, content } = req.body;
   
-  // Access the user's id from the token payload, as set in your auth middleware.
-  // Ensure that when signing the JWT (in your login endpoint) you include the user's id as "userId"
-  const userId = req.user.userId; // or req.user.id if that's how you named it
-  
-  // Validate that title and content are provided
+  // Validate required fields
   if (!title || !content) {
     return res.status(400).json({ error: "Title and content are required." });
   }
 
+  // Get userId from the token payload attached by auth middleware.
+  // (Make sure your token payload includes a property like userId.)
+  const userId = req.user.userId;
+
   try {
-    // Create a new post in the database with Prisma
     const newPost = await prisma.post.create({
       data: {
         title,
         content,
-        userId, // Associate the post with the logged-in user
+        userId,  // Associates the post with the logged-in user.
       },
     });
     res.status(201).json(newPost);
@@ -51,6 +52,7 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 module.exports = router;
+
 
 
 
