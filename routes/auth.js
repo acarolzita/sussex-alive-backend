@@ -94,6 +94,9 @@ router.post("/login", async (req, res) => {
       return res.status(401).json({ error: "Invalid credentials." });
     }
 
+    // Temporary logging: Print out the JWT secret being used
+    console.log("JWT_SECRET being used:", JWT_SECRET);
+
     // Sign a JWT token with the user's id (and optionally other details)
     const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" });
 
@@ -109,6 +112,7 @@ router.post("/login", async (req, res) => {
 });
 
 module.exports = router;
+
 
 
 
