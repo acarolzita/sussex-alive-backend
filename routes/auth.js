@@ -14,7 +14,7 @@ const bcrypt = require("bcrypt");
 const jwt = require("jsonwebtoken");
 
 // Read your JWT secret from environment variables
-const JWT_SECRET = process.env.JWT_SECRET || "default_secret"; // Ensure you set JWT_SECRET in your .env file
+const JWT_SECRET = process.env.JWT_SECRET || "default_secret";
 
 // *******************
 // Registration Endpoint
@@ -54,7 +54,12 @@ router.post("/register", async (req, res) => {
     // Optionally, you may not want to return sensitive info
     return res.status(201).json({
       message: "User registered successfully.",
-      user: { id: newUser.id, email: newUser.email, name: newUser.name, studentId: newUser.studentId },
+      user: { 
+        id: newUser.id, 
+        email: newUser.email, 
+        name: newUser.name, 
+        studentId: newUser.studentId 
+      },
     });
   } catch (error) {
     console.error("Error in registration:", error);
@@ -82,7 +87,6 @@ router.post("/login", async (req, res) => {
     });
 
     if (!user) {
-      // If the user isn't found, authentication fails
       return res.status(401).json({ error: "Invalid credentials." });
     }
 
@@ -90,20 +94,24 @@ router.post("/login", async (req, res) => {
     const isPasswordValid = await bcrypt.compare(password, user.password);
 
     if (!isPasswordValid) {
-      // If password doesn't match, authentication fails
       return res.status(401).json({ error: "Invalid credentials." });
     }
 
-    // Temporary logging: Print out the JWT secret being used
-    console.log("JWT_SECRET being used:", JWT_SECRET);
+    // Log the secret for debugging purposes (remove or comment out in production)
+    console.log("JWT_SECRET being used:", process.env.JWT_SECRET);
 
-    // Sign a JWT token with the user's id (and optionally other details)
+    // Sign a JWT token with the user's id; payload includes userId
     const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" });
 
     return res.json({
       message: "Login successful.",
       token,
-      user: { id: user.id, email: user.email, name: user.name, studentId: user.studentId },
+      user: {
+        id: user.id,
+        email: user.email,
+        name: user.name,
+        studentId: user.studentId
+      },
     });
   } catch (error) {
     console.error("Error in login:", error);
@@ -112,6 +120,7 @@ router.post("/login", async (req, res) => {
 });
 
 module.exports = router;
+
 
 
 
