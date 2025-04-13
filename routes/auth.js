@@ -98,7 +98,7 @@ router.post("/login", async (req, res) => {
     }
 
     // Log the secret for debugging purposes (remove or comment out in production)
-    console.log("JWT_SECRET being used:", process.env.JWT_SECRET);
+    console.log("Signing JWT with secret:", process.env.JWT_SECRET);
 
     // Sign a JWT token with the user's id; payload includes userId
     const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: "7d" });
