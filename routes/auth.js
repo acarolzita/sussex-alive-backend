@@ -101,7 +101,7 @@ router.post("/login", async (req, res) => {
     console.log("JWT_SECRET being used:", process.env.JWT_SECRET);
 
     // Sign a JWT token with the user's id; payload includes userId
-    const token = jwt.sign({ userId: user.id }, JWT_SECRET, { expiresIn: "7d" });
+    const token = jwt.sign({ userId: user.id }, process.env.JWT_SECRET, { expiresIn: "7d" });
 
     return res.json({
       message: "Login successful.",
