@@ -1,27 +1,46 @@
 // middlewares/authMiddleware.js
 
 const jwt = require("jsonwebtoken");
-const JWT_SECRET = process.env.JWT_SECRET || "your_jwt_secret";
+
+// Load JWT secret from environment
+const JWT_SECRET = process.env.JWT_SECRET;
+if (!JWT_SECRET) {
+  console.warn("⚠️  Warning: JWT_SECRET is not set in environment variables!");
+}
 
 function authenticateToken(req, res, next) {
-  // This line retrieves the value of the Authorization header.
-  const authHeader = req.headers["authorization"];
-  
-  // This line splits the header into two parts: "Bearer" and the actual token.
-  // It expects the header to be in the format "Bearer <token>"
-  const token = authHeader && authHeader.split(" ")[1];
-  
-  if (!token) return res.sendStatus(401);
+  const authHeader = req.headers.authorization;
+  if (!authHeader) {
+    return res.status(401).json({ message: "Access token missing" });
+  }
 
-  jwt.verify(token, JWT_SECRET, (err, user) => {
+  // Expect header format: "Bearer <token>"
+  const [scheme, token] = authHeader.split(" ");
+  if (scheme !== "Bearer" || !token) {
+    return res
+      .status(401)
+      .json({ message: "Invalid Authorization header format" });
+  }
+
+  jwt.verify(token, JWT_SECRET, (err, payload) => {
     if (err) {
       console.error("Token verification error:", err);
-      return res.sendStatus(403);
+      return res
+        .status(403)
+        .json({ message: "Invalid or expired access token" });
     }
-    req.user = user;
+
+    // Attach decoded token payload to req.user
+    // Normalize userId (your token might have { userId } or { id })
+    req.user = {
+      userId: payload.userId || payload.id,
+      ...payload,
+    };
+
     next();
   });
 }
 
 module.exports = authenticateToken;
+
 
