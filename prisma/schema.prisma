@@ -8,30 +8,51 @@ generator client {
 }
 
 model User {
-  id                String    @id @default(uuid())
-  email             String    @unique
-  name              String
-  password          String
-  bio               String?
-  profilePic        String?
-  posts             Post[]
-  sentMessages      Message[] @relation("SenderMessages")
-  receivedMessages  Message[] @relation("ReceiverMessages")
-  comments          Comment[]
-  likes             Like[]
-  sentFriendRequests    Friend[] @relation("RequestedFriends")
-  receivedFriendRequests Friend[] @relation("ReceivedFriends")
+  id                     String     @id @default(uuid())
+  email                  String     @unique
+  studentId              String     @unique
+  name                   String
+  password               String
+  bio                    String?
+  profilePic             String?
+  createdAt              DateTime   @default(now())
+  posts                  Post[]
+  comments               Comment[]
+  likes                  Like[]
+  sentMessages           Message[]  @relation("SenderMessages")
+  receivedMessages       Message[]  @relation("ReceiverMessages")
+  sentFriendRequests     Friend[]   @relation("RequestedFriends")
+  receivedFriendRequests Friend[]   @relation("ReceivedFriends")
 }
 
 model Post {
-  id        String   @id @default(uuid())
+  id        String    @id @default(uuid())
   title     String
+  content   String
+  createdAt DateTime  @default(now())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id])
+  comments  Comment[]
+  likes     Like[]
+}
+
+model Comment {
+  id        String   @id @default(uuid())
   content   String
   createdAt DateTime @default(now())
   userId    String
+  postId    String
   user      User     @relation(fields: [userId], references: [id])
-  comments  Comment[]
-  likes     Like[]
+  post      Post     @relation(fields: [postId], references: [id])
+}
+
+model Like {
+  id        String   @id @default(uuid())
+  userId    String
+  postId    String
+  user      User     @relation(fields: [userId], references: [id])
+  post      Post     @relation(fields: [postId], references: [id])
+  @@unique([userId, postId])
 }
 
 model Message {
@@ -44,36 +65,17 @@ model Message {
   receiver   User     @relation("ReceiverMessages", fields: [receiverId], references: [id])
 }
 
-// Add these models:
-model Comment {
-  id        String   @id @default(uuid())
-  content   String
-  createdAt DateTime @default(now())
-  userId    String
-  postId    String
-  user      User     @relation(fields: [userId], references: [id])
-  post      Post     @relation(fields: [postId], references: [id])
-}
-
-model Like {
-  id     String   @id @default(uuid())
-  userId String
-  postId String
-  user   User     @relation(fields: [userId], references: [id])
-  post   Post     @relation(fields: [postId], references: [id])
-  @@unique([userId, postId])
-}
-
 model Friend {
-  id          String   @id @default(uuid())
-  requesterId String
-  receiverId  String
-  status      String   // e.g., 'pending', 'accepted', 'rejected'
-  requestedAt DateTime @default(now())
-  requester   User     @relation("RequestedFriends", fields: [requesterId], references: [id])
-  receiver    User     @relation("ReceivedFriends", fields: [receiverId], references: [id])
+  id            String   @id @default(uuid())
+  requesterId   String
+  receiverId    String
+  status        String   // 'pending', 'accepted', 'rejected'
+  requestedAt   DateTime @default(now())
+  requester     User     @relation("RequestedFriends", fields: [requesterId], references: [id])
+  receiver      User     @relation("ReceivedFriends", fields: [receiverId], references: [id])
   @@unique([requesterId, receiverId])
 }
+
 
 
 
