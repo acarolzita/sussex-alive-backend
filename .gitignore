@@ -1,3 +1,34 @@
-node_modules
-# Keep environment variables out of version control
+# Node modules
+node_modules/
+
+# Logs
+npm-debug.log*
+yarn-debug.log*
+pnpm-debug.log*
+logs/
+*.log
+
+# Environment variables
 .env
+.env.local
+.env.*.local
+
+# Prisma migrations & client
+prisma/migrations/
+.prisma/
+
+# Next.js build output
+.next/
+out/
+
+# Build directories (if any)
+dist/
+build/
+
+# OS-specific files
+.DS_Store
+Thumbs.db
+
+# IDE/editor folders
+.vscode/
+.idea/
