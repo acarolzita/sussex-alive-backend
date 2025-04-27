@@ -1,16 +1,17 @@
-// middleware/firebaseAuth.js
-const admin = require('firebase-admin');
+// middlewares/firebaseAuth.js
+const admin = require("firebase-admin");
 
-// Make sure you initialized admin somewhere before
 admin.initializeApp({
-  credential: admin.credential.applicationDefault(), // or admin.credential.cert(serviceAccount)
+  credential: admin.credential.applicationDefault(), 
+  // or if you have a private key file:
+  // credential: admin.credential.cert(require("../path/to/your-firebase-adminsdk.json"))
 });
 
 async function authenticateToken(req, res, next) {
-  const token = req.headers.authorization?.split('Bearer ')[1];
+  const token = req.headers.authorization?.split("Bearer ")[1];
 
   if (!token) {
-    return res.status(401).json({ error: 'No token provided' });
+    return res.status(401).json({ error: "No token provided" });
   }
 
   try {
@@ -18,9 +19,10 @@ async function authenticateToken(req, res, next) {
     req.user = decodedToken;
     next();
   } catch (error) {
-    console.error('Firebase token verification failed:', error);
-    return res.status(401).json({ error: 'Unauthorized' });
+    console.error("Firebase token verification failed:", error);
+    return res.status(401).json({ error: "Unauthorized" });
   }
 }
 
 module.exports = authenticateToken;
+
