@@ -1,18 +1,17 @@
 // index.js
 require("dotenv").config();
-
 const express = require("express");
 const cors = require("cors");
 const helmet = require("helmet");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 
-// Import routes
+// Import routers
 const profileRouter = require("./routes/profile");
 const postsRouter = require("./routes/posts");
 const messagesRouter = require("./routes/messages");
 
-// Import Firebase authentication middleware
+// Import Firebase token middleware
 const authenticateToken = require("./middlewares/firebaseAuth");
 
 const app = express();
@@ -21,20 +20,16 @@ const app = express();
 const PORT = process.env.PORT || 5001;
 const CORS_ORIGIN = process.env.CORS_ORIGIN;
 
-if (!CORS_ORIGIN) {
-  console.warn("Warning: CORS_ORIGIN is not set in your environment!");
-}
-
-// Middleware
+// Basic security and parsing middleware
+app.use(helmet());
 app.use(express.json());
 app.use(
   cors({
     origin: CORS_ORIGIN,
   })
 );
-app.use(helmet());
 
-// Create HTTP server and Socket.io
+// Create HTTP server and setup Socket.io
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
@@ -43,28 +38,28 @@ const io = new Server(server, {
   },
 });
 
-// Socket.io connection
+// WebSocket for messaging
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
   socket.on("sendMessage", (data) => {
-    console.log("Received message via Socket.io:", data);
+    console.log("Received message via socket:", data);
     io.emit("message", data);
   });
 
   socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
+    console.log("A user disconnected:", socket.id);
   });
 });
 
-// Mount API routes (PROTECTED)
+// Routes (now PROTECTED with Firebase Auth!)
 app.use("/api/profile", authenticateToken, profileRouter);
 app.use("/api/posts", authenticateToken, postsRouter);
 app.use("/api/messages", authenticateToken, messagesRouter);
 
-// Health Check
+// Health check
 app.get("/", (req, res) => {
-  res.send("Backend server is running!");
+  res.send("Backend is running!");
 });
 
 // Start server
@@ -80,6 +75,7 @@ process.on("SIGINT", () => {
     process.exit(0);
   });
 });
+
 
 
 
