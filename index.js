@@ -7,11 +7,13 @@ const helmet = require("helmet");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 
-// Import route files
-const authRouter = require("./routes/auth");
+// Import routes
 const profileRouter = require("./routes/profile");
 const postsRouter = require("./routes/posts");
 const messagesRouter = require("./routes/messages");
+
+// Import Firebase authentication middleware
+const authenticateToken = require("./middlewares/firebaseAuth");
 
 const app = express();
 
@@ -27,12 +29,12 @@ if (!CORS_ORIGIN) {
 app.use(express.json());
 app.use(
   cors({
-    origin: CORS_ORIGIN, 
+    origin: CORS_ORIGIN,
   })
 );
 app.use(helmet());
 
-// Create HTTP server & Socket.io
+// Create HTTP server and Socket.io
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
@@ -41,7 +43,7 @@ const io = new Server(server, {
   },
 });
 
-// Socket.io connection handling
+// Socket.io connection
 io.on("connection", (socket) => {
   console.log("A user connected:", socket.id);
 
@@ -55,13 +57,12 @@ io.on("connection", (socket) => {
   });
 });
 
-// Mount API routes
-app.use("/api/auth", authRouter);
-app.use("/api/profile", profileRouter);
-app.use("/api/posts", postsRouter);
-app.use("/api/messages", messagesRouter);
+// Mount API routes (PROTECTED)
+app.use("/api/profile", authenticateToken, profileRouter);
+app.use("/api/posts", authenticateToken, postsRouter);
+app.use("/api/messages", authenticateToken, messagesRouter);
 
-// Health check / root
+// Health Check
 app.get("/", (req, res) => {
   res.send("Backend server is running!");
 });
@@ -73,12 +74,13 @@ server.listen(PORT, () => {
 
 // Graceful shutdown
 process.on("SIGINT", () => {
-  console.log("SIGINT signal received: closing HTTP server");
+  console.log("SIGINT received: closing server...");
   server.close(() => {
-    console.log("Server closed gracefully");
+    console.log("Server closed gracefully.");
     process.exit(0);
   });
 });
+
 
 
 
