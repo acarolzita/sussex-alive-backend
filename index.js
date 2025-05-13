@@ -5,64 +5,66 @@ const helmet = require("helmet");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 
-// Import routers
 const userRoutes = require("./routes/userRoutes");
 const profileRouter = require("./routes/profile");
 const postsRouter = require("./routes/posts");
 const messagesRouter = require("./routes/messages");
-
-// Import Firebase token middleware
 const authenticateToken = require("./middlewares/firebaseAuth");
 
 const app = express();
 
-// Environment variables
 const PORT = process.env.PORT || 10000;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "https://sussex-alive.vercel.app";
 
-// ✅ CORS Configuration
-const corsOptions = {
+// ✅ Apply CORS globally before routes
+app.use(cors({
   origin: CORS_ORIGIN,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true,
-};
+  allowedHeaders: ["Content-Type", "Authorization"]
+}));
 
-// ✅ Middleware
+// ✅ Ensure OPTIONS preflight requests are handled
+app.options("*", cors());
+
+// ✅ Security + JSON parsing
 app.use(helmet());
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions)); // Explicit preflight
-
 app.use(express.json());
 
-// ✅ Routes
-app.use("/api/auth", userRoutes); // Public
-app.use("/api/profile", authenticateToken, profileRouter); // Protected
-app.use("/api/posts", authenticateToken, postsRouter);     // Protected
-app.use("/api/messages", authenticateToken, messagesRouter); // Protected
+// ✅ Routes (auth doesn't need token)
+app.use("/api/auth", userRoutes);
+app.use("/api/profile", authenticateToken, profileRouter);
+app.use("/api/posts", authenticateToken, postsRouter);
+app.use("/api/messages", authenticateToken, messagesRouter);
 
+// ✅ Health check
 app.get("/", (req, res) => {
-  res.send("Backend is running!");
+  res.send("Backend is running");
 });
 
-// ✅ Socket.io Setup
+// ✅ WebSockets
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
     origin: CORS_ORIGIN,
-    methods: ["GET", "POST"],
-  },
+    methods: ["GET", "POST"]
+  }
 });
 
 io.on("connection", (socket) => {
   console.log("User connected:", socket.id);
-  socket.on("sendMessage", (data) => io.emit("message", data));
-  socket.on("disconnect", () => console.log("User disconnected:", socket.id));
+
+  socket.on("sendMessage", (data) => {
+    io.emit("message", data);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("User disconnected:", socket.id);
+  });
 });
 
-// ✅ Start Server
+// ✅ Start server
 server.listen(PORT, () => {
-  console.log(`✅ Backend server running on port ${PORT}`);
+  console.log(`Backend server running on port ${PORT}`);
 });
 
 
