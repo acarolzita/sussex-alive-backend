@@ -1,29 +1,26 @@
+// app.js
 const express = require("express");
 const cors = require("cors");
-const authRoutes = require("./routes/userRoutes");
+const bodyParser = require("body-parser");
+const userRoutes = require("./routes/userRoutes");
 const profileRoutes = require("./routes/profile");
-const postsRoutes = require("./routes/posts");
-const messagesRoutes = require("./routes/messages");
 
 const app = express();
 
-// ✅ Allow frontend from Vercel to call your backend
+// ✅ Allow CORS from your frontend domain
 app.use(cors({
-  origin: "https://sussex-alive.vercel.app",
-  credentials: true,
+  origin: "https://sussex-alive.vercel.app", // FRONTEND URL
+  methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+  allowedHeaders: ["Content-Type", "Authorization"]
 }));
 
-// Middleware to parse JSON
-app.use(express.json());
+app.use(bodyParser.json());
 
-// Route handlers
-app.use("/api/auth", authRoutes);
+app.use("/api/auth", userRoutes);
 app.use("/api/profile", profileRoutes);
-app.use("/api/posts", postsRoutes);
-app.use("/api/messages", messagesRoutes);
 
-app.get("/", (req, res) => {
-  res.send("Welcome to Sussex-Alive Backend");
+const PORT = process.env.PORT || 10000;
+app.listen(PORT, () => {
+  console.log(`Backend server running on port ${PORT}`);
 });
 
-module.exports = app;
