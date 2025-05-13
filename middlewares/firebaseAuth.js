@@ -1,11 +1,8 @@
-// middlewares/firebaseAuth.js
 const admin = require("firebase-admin");
 
 if (!admin.apps.length) {
   admin.initializeApp({
     credential: admin.credential.applicationDefault(),
-    // or use service account:
-    // credential: admin.credential.cert(require("../path/to/serviceAccountKey.json"))
   });
 }
 
@@ -27,5 +24,6 @@ async function authenticateToken(req, res, next) {
 }
 
 module.exports = authenticateToken;
+
 
 
