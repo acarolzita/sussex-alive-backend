@@ -1,4 +1,3 @@
-// index.js
 require("dotenv").config();
 const express = require("express");
 const cors = require("cors");
@@ -21,17 +20,23 @@ const app = express();
 const PORT = process.env.PORT || 10000;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "https://sussex-alive.vercel.app";
 
-// Security and parsing middleware
-app.use(helmet());
-app.use(express.json());
-app.use(cors({
+// ✅ Define a consistent CORS config
+const corsOptions = {
   origin: CORS_ORIGIN,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-  allowedHeaders: ["Content-Type", "Authorization"]
-}));
-app.options("*", cors()); // Optional: preflight support
+  allowedHeaders: ["Content-Type", "Authorization"],
+  credentials: true, // optional if you're sending cookies or auth headers
+};
 
-// Public route (no auth required)
+// ✅ Apply CORS correctly
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); // handle preflight with same config
+
+// Security and body parsing
+app.use(helmet());
+app.use(express.json());
+
+// Public routes
 app.use("/api/auth", userRoutes);
 
 // Protected routes
@@ -39,7 +44,7 @@ app.use("/api/profile", authenticateToken, profileRouter);
 app.use("/api/posts", authenticateToken, postsRouter);
 app.use("/api/messages", authenticateToken, messagesRouter);
 
-// Health check
+// Health check route
 app.get("/", (req, res) => {
   res.send("Backend is running!");
 });
@@ -49,8 +54,8 @@ const server = createServer(app);
 const io = new Server(server, {
   cors: {
     origin: CORS_ORIGIN,
-    methods: ["GET", "POST"]
-  }
+    methods: ["GET", "POST"],
+  },
 });
 
 io.on("connection", (socket) => {
@@ -66,7 +71,7 @@ io.on("connection", (socket) => {
   });
 });
 
-// Start the server
+// Start server
 server.listen(PORT, () => {
   console.log(`Backend server running on port ${PORT}`);
 });
@@ -79,6 +84,7 @@ process.on("SIGINT", () => {
     process.exit(0);
   });
 });
+
 
 
 
