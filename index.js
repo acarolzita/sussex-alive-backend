@@ -20,36 +20,32 @@ const app = express();
 const PORT = process.env.PORT || 10000;
 const CORS_ORIGIN = process.env.CORS_ORIGIN || "https://sussex-alive.vercel.app";
 
-// ✅ Define a consistent CORS config
+// ✅ CORS Configuration
 const corsOptions = {
   origin: CORS_ORIGIN,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
-  credentials: true, // optional if you're sending cookies or auth headers
+  credentials: true,
 };
 
-// ✅ Apply CORS correctly
-app.use(cors(corsOptions));
-app.options("*", cors(corsOptions)); // handle preflight with same config
-
-// Security and body parsing
+// ✅ Middleware
 app.use(helmet());
+app.use(cors(corsOptions));
+app.options("*", cors(corsOptions)); // Explicit preflight
+
 app.use(express.json());
 
-// Public routes
-app.use("/api/auth", userRoutes);
+// ✅ Routes
+app.use("/api/auth", userRoutes); // Public
+app.use("/api/profile", authenticateToken, profileRouter); // Protected
+app.use("/api/posts", authenticateToken, postsRouter);     // Protected
+app.use("/api/messages", authenticateToken, messagesRouter); // Protected
 
-// Protected routes
-app.use("/api/profile", authenticateToken, profileRouter);
-app.use("/api/posts", authenticateToken, postsRouter);
-app.use("/api/messages", authenticateToken, messagesRouter);
-
-// Health check route
 app.get("/", (req, res) => {
   res.send("Backend is running!");
 });
 
-// WebSocket setup
+// ✅ Socket.io Setup
 const server = createServer(app);
 const io = new Server(server, {
   cors: {
@@ -59,31 +55,16 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
-  console.log("A user connected:", socket.id);
-
-  socket.on("sendMessage", (data) => {
-    console.log("Received message:", data);
-    io.emit("message", data);
-  });
-
-  socket.on("disconnect", () => {
-    console.log("User disconnected:", socket.id);
-  });
+  console.log("User connected:", socket.id);
+  socket.on("sendMessage", (data) => io.emit("message", data));
+  socket.on("disconnect", () => console.log("User disconnected:", socket.id));
 });
 
-// Start server
+// ✅ Start Server
 server.listen(PORT, () => {
-  console.log(`Backend server running on port ${PORT}`);
+  console.log(`✅ Backend server running on port ${PORT}`);
 });
 
-// Graceful shutdown
-process.on("SIGINT", () => {
-  console.log("SIGINT received. Shutting down...");
-  server.close(() => {
-    console.log("Server closed.");
-    process.exit(0);
-  });
-});
 
 
 
