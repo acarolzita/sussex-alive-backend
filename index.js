@@ -25,7 +25,7 @@ app.use(express.json());
 
 // ✅ Full CORS setup (including preflight OPTIONS support)
 app.use(cors({
-  origin: CORS_ORIGIN,
+  origin: "https://sussex-alive.vercel.app",
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
