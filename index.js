@@ -6,11 +6,13 @@ const helmet = require("helmet");
 const { createServer } = require("http");
 const { Server } = require("socket.io");
 
-const userRoutes = require("./routes/userRoutes"); // public
-const profileRouter = require("./routes/profile"); // protected
-const postsRouter = require("./routes/posts");     // protected
-const messagesRouter = require("./routes/messages"); // protected
+// Routes
+const userRoutes = require("./routes/userRoutes");        // public
+const profileRouter = require("./routes/profile");        // protected
+const postsRouter = require("./routes/posts");            // protected
+const messagesRouter = require("./routes/messages");      // protected
 
+// Firebase middleware
 const authenticateToken = require("./middlewares/firebaseAuth");
 
 const app = express();
@@ -21,25 +23,25 @@ const CORS_ORIGIN = process.env.CORS_ORIGIN || "https://sussex-alive.vercel.app"
 app.use(helmet());
 app.use(express.json());
 
-// ✅ CORS setup
+// ✅ Full CORS setup (including preflight OPTIONS support)
 app.use(cors({
   origin: CORS_ORIGIN,
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"]
 }));
-app.options("*", cors()); // Preflight support
+app.options("*", cors()); // Important for handling preflight
 
-// ✅ Public route (no auth)
+// ✅ Public routes
 app.use("/api/auth", userRoutes);
 
-// ✅ Protected routes (Firebase token required)
+// ✅ Protected routes
 app.use("/api/profile", authenticateToken, profileRouter);
 app.use("/api/posts", authenticateToken, postsRouter);
 app.use("/api/messages", authenticateToken, messagesRouter);
 
-// Health check
+// ✅ Health check
 app.get("/", (req, res) => {
-  res.send("Backend is running!");
+  res.status(200).send("✅ Backend is running and CORS is configured.");
 });
 
 // ✅ WebSocket setup
@@ -52,31 +54,32 @@ const io = new Server(server, {
 });
 
 io.on("connection", (socket) => {
-  console.log("Socket connected:", socket.id);
+  console.log("🔌 Socket connected:", socket.id);
 
   socket.on("sendMessage", (data) => {
-    console.log("Socket message received:", data);
+    console.log("💬 Socket message received:", data);
     io.emit("message", data);
   });
 
   socket.on("disconnect", () => {
-    console.log("Socket disconnected:", socket.id);
+    console.log("❌ Socket disconnected:", socket.id);
   });
 });
 
 // Start server
 server.listen(PORT, () => {
-  console.log(`✅ Backend server running on port ${PORT}`);
+  console.log(`🚀 Backend server running on port ${PORT}`);
 });
 
 // Graceful shutdown
 process.on("SIGINT", () => {
-  console.log("SIGINT received. Shutting down...");
+  console.log("🛑 SIGINT received. Shutting down...");
   server.close(() => {
-    console.log("Server closed.");
+    console.log("✅ Server closed.");
     process.exit(0);
   });
 });
+
 
 
 
