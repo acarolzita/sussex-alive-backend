@@ -1,29 +1,25 @@
 // routes/posts.js
 
-const express = require('express');
+const express = require("express");
 const router = express.Router();
-const { PrismaClient } = require('@prisma/client');
-const prisma = new PrismaClient();
+const admin = require("firebase-admin");
 
-// Import your authentication middleware to protect the POST route.
-const authenticateToken = require('../middlewares/authMiddleware');
+// Firestore instance
+const db = admin.firestore();
 
-// GET /api/posts: Fetch all posts from the database.
-// This is a public route (no token required), but you can choose to protect it if desired.
-router.get('/', async (req, res) => {
+// Auth middleware
+const authenticateToken = require("../middlewares/authMiddleware");
+
+// GET /api/posts - Public route to fetch all posts
+router.get("/", async (req, res) => {
   try {
-    // Retrieve posts; optionally include related user data.
-    const posts = await prisma.post.findMany({
-      include: {
-        user: { 
-          select: { 
-            id: true, 
-            name: true, 
-            email: true 
-          } 
-        },
-      },
+    const snapshot = await db.collection("posts").orderBy("createdAt", "desc").get();
+
+    const posts = [];
+    snapshot.forEach(doc => {
+      posts.push({ id: doc.id, ...doc.data() });
     });
+
     res.json(posts);
   } catch (error) {
     console.error("Error fetching posts:", error);
@@ -31,30 +27,28 @@ router.get('/', async (req, res) => {
   }
 });
 
-// POST /api/posts: Create a new post.
-// This is a protected route—only authenticated users (with a valid JWT) can create a post.
-router.post('/', authenticateToken, async (req, res) => {
+// POST /api/posts - Protected route to create a post
+router.post("/", authenticateToken, async (req, res) => {
   const { title, content } = req.body;
 
-  // Validate that title and content are provided.
   if (!title || !content) {
     return res.status(400).json({ error: "Title and content are required." });
   }
 
-  // Extract the userId from the token payload.
-  // Ensure your token contains userId when signing (e.g., jwt.sign({ userId: user.id }, ...))
   const userId = req.user.userId;
 
   try {
-    // Create a new post in the database using Prisma.
-    const newPost = await prisma.post.create({
-      data: {
-        title,
-        content,
-        userId, // Associate this post with the authenticated user.
-      },
-    });
-    res.status(201).json(newPost);
+    const newPostRef = db.collection("posts").doc();
+    const newPost = {
+      title,
+      content,
+      userId,
+      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+    };
+
+    await newPostRef.set(newPost);
+
+    res.status(201).json({ id: newPostRef.id, ...newPost });
   } catch (error) {
     console.error("Error creating post:", error);
     res.status(500).json({ error: "Internal server error" });
@@ -62,6 +56,7 @@ router.post('/', authenticateToken, async (req, res) => {
 });
 
 module.exports = router;
+
 
 
 
