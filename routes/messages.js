@@ -1,7 +1,7 @@
 // routes/messages.js
 const express = require("express");
 const router = express.Router();
-const { getFirestore } = require("firebase-admin/firestore");
+const { getFirestore, FieldValue } = require("firebase-admin/firestore");
 const authenticateToken = require("../middlewares/authMiddleware");
 
 const db = getFirestore();
@@ -15,8 +15,8 @@ router.get("/", authenticateToken, async (req, res) => {
       return res.status(400).json({ error: "Missing senderId or receiverId" });
     }
 
-    const messagesRef = db.collection("messages");
-    const querySnapshot = await messagesRef
+    const querySnapshot = await db
+      .collection("messages")
       .where("participants", "array-contains", senderId)
       .orderBy("createdAt", "asc")
       .get();
@@ -25,7 +25,6 @@ router.get("/", authenticateToken, async (req, res) => {
 
     querySnapshot.forEach((doc) => {
       const data = doc.data();
-      // Ensure it's part of this chat pair
       if (
         (data.senderId === senderId && data.receiverId === receiverId) ||
         (data.senderId === receiverId && data.receiverId === senderId)
@@ -55,7 +54,7 @@ router.post("/", authenticateToken, async (req, res) => {
       senderId,
       receiverId,
       participants: [senderId, receiverId],
-      createdAt: new Date().toISOString(),
+      createdAt: FieldValue.serverTimestamp(),
     };
 
     const docRef = await db.collection("messages").add(message);
@@ -68,6 +67,7 @@ router.post("/", authenticateToken, async (req, res) => {
 });
 
 module.exports = router;
+
 
 
 

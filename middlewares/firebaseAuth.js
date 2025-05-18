@@ -5,23 +5,22 @@ if (!admin.apps.length) {
     const serviceAccountRaw = process.env.FIREBASE_SERVICE_ACCOUNT;
 
     if (!serviceAccountRaw) {
-      throw new Error("FIREBASE_SERVICE_ACCOUNT env variable is missing.");
+      throw new Error("FIREBASE_SERVICE_ACCOUNT environment variable is missing.");
     }
 
     const serviceAccount = JSON.parse(serviceAccountRaw);
 
     if (!serviceAccount.project_id) {
-      throw new Error("Parsed service account is missing 'project_id'. Check your .env formatting.");
+      throw new Error("Missing 'project_id' in parsed service account. Check your .env formatting.");
     }
 
     admin.initializeApp({
       credential: admin.credential.cert(serviceAccount),
-      projectId: serviceAccount.project_id,
     });
 
     console.log("✅ Firebase Admin initialized successfully");
   } catch (err) {
-    console.error("❌ Failed to initialize Firebase Admin SDK:", err.message);
+    console.error("❌ Firebase Admin initialization failed:", err.message);
   }
 }
 
@@ -34,15 +33,16 @@ async function authenticateToken(req, res, next) {
 
   try {
     const decodedToken = await admin.auth().verifyIdToken(token);
-    req.user = decodedToken;
+    req.user = decodedToken; // You now have access to req.user.uid, etc.
     next();
   } catch (error) {
-    console.error("Firebase token verification failed:", error.message);
+    console.error("❌ Token verification failed:", error.message);
     return res.status(401).json({ error: "Unauthorized" });
   }
 }
 
 module.exports = authenticateToken;
+
 
 
 

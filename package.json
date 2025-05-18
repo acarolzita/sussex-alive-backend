@@ -3,9 +3,10 @@
   "version": "1.0.0",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js",
-    "dev": "nodemon index.js"
-  },
+  "start": "node index.js",
+  "dev": "nodemon index.js",
+  "lint": "eslint ."
+},
   "devDependencies": {
     "next-transpile-modules": "^10.0.1",
     "nodemon": "^3.1.9"
