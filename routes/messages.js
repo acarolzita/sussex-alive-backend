@@ -1,41 +1,39 @@
-// backend/routes/messages.js
+// routes/messages.js
 const express = require("express");
 const router = express.Router();
-const admin = require("firebase-admin");
-const db = admin.firestore();
+const { getFirestore } = require("firebase-admin/firestore");
+const authenticateToken = require("../middlewares/authMiddleware");
 
-// GET /api/messages
-// Retrieves all messages, optionally filtered by senderId and receiverId query parameters.
-router.get("/", async (req, res) => {
+const db = getFirestore();
+
+// GET /api/messages?senderId=abc&receiverId=xyz
+router.get("/", authenticateToken, async (req, res) => {
   try {
     const { senderId, receiverId } = req.query;
 
-    let query = db.collection("messages");
-
-    if (senderId && receiverId) {
-      // Fetch all messages between the two users (both directions)
-      const snapshot = await query
-        .where("participants", "array-contains", senderId)
-        .orderBy("createdAt", "asc")
-        .get();
-
-      const messages = snapshot.docs
-        .map(doc => ({ id: doc.id, ...doc.data() }))
-        .filter(msg => msg.participants.includes(receiverId));
-
-      return res.json(messages);
+    if (!senderId || !receiverId) {
+      return res.status(400).json({ error: "Missing senderId or receiverId" });
     }
 
-    // If filtering by just one user
-    if (senderId) {
-      query = query.where("senderId", "==", senderId);
-    }
-    if (receiverId) {
-      query = query.where("receiverId", "==", receiverId);
-    }
+    const messagesRef = db.collection("messages");
+    const querySnapshot = await messagesRef
+      .where("participants", "array-contains", senderId)
+      .orderBy("createdAt", "asc")
+      .get();
 
-    const snapshot = await query.orderBy("createdAt", "asc").get();
-    const messages = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+    const messages = [];
+
+    querySnapshot.forEach((doc) => {
+      const data = doc.data();
+      // Ensure it's part of this chat pair
+      if (
+        (data.senderId === senderId && data.receiverId === receiverId) ||
+        (data.senderId === receiverId && data.receiverId === senderId)
+      ) {
+        messages.push({ id: doc.id, ...data });
+      }
+    });
+
     res.json(messages);
   } catch (error) {
     console.error("Error fetching messages:", error);
@@ -44,8 +42,7 @@ router.get("/", async (req, res) => {
 });
 
 // POST /api/messages
-// Creates a new message
-router.post("/", async (req, res) => {
+router.post("/", authenticateToken, async (req, res) => {
   try {
     const { text, senderId, receiverId } = req.body;
 
@@ -53,16 +50,17 @@ router.post("/", async (req, res) => {
       return res.status(400).json({ error: "Missing required fields" });
     }
 
-    const newMessage = {
+    const message = {
       text,
       senderId,
       receiverId,
       participants: [senderId, receiverId],
-      createdAt: admin.firestore.FieldValue.serverTimestamp(),
+      createdAt: new Date().toISOString(),
     };
 
-    const docRef = await db.collection("messages").add(newMessage);
-    res.status(201).json({ id: docRef.id, ...newMessage });
+    const docRef = await db.collection("messages").add(message);
+
+    res.status(201).json({ id: docRef.id, ...message });
   } catch (error) {
     console.error("Error creating message:", error);
     res.status(500).json({ error: "Failed to create message" });
@@ -70,5 +68,6 @@ router.post("/", async (req, res) => {
 });
 
 module.exports = router;
+
 
 
